@@ -8,9 +8,21 @@ import core
 import controlTypes
 import appModuleHandler
 import addonHandler
-from NVDAObjects.IAccessible import IAccessible
+import windowUtils
+import NVDAObjects.IAccessible 
+import winUser
+import ui
 
 addonHandler.initTranslation()
+
+def findDetails():
+	try:
+		obj = NVDAObjects.IAccessible.getNVDAObjectFromEvent(
+			windowUtils.findDescendantWindow(api.getForegroundObject().windowHandle, controlID=1),
+				winUser.OBJID_CLIENT, 0)
+	except LookupError:
+		ui.message("no")
+		return None
 
 class AppModule(appModuleHandler.AppModule):
 
@@ -19,8 +31,11 @@ class AppModule(appModuleHandler.AppModule):
 			api.setForegroundObject(obj)
 			if obj.name == "New Document":
 				obj.description = None
-		if api.getForegroundObject().name == "New Document":
-			if obj.role in (controlTypes.ROLE_EDITABLETEXT, controlTypes.ROLE_CHECKBOX):
-				labelObj = obj.simplePrevious
-				if labelObj and labelObj.role == controlTypes.ROLE_STATICTEXT:
-					obj.name = labelObj.name
+		#if api.getForegroundObject().name == "New Document":
+		if obj.role in (controlTypes.ROLE_EDITABLETEXT, controlTypes.ROLE_CHECKBOX):
+			labelObj = obj.simplePrevious
+			if labelObj and labelObj.role == controlTypes.ROLE_STATICTEXT:
+				obj.name = labelObj.name
+		if obj.role == controlTypes.ROLE_TABCONTROL:
+			obj.windowControlID = 1
+
